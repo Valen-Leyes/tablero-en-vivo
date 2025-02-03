@@ -106,15 +106,11 @@ hide_streamlit_style = """
                 .streamlit-footer {display: none;}
                 /* Hide your specific div class, replace class name with the one you identified */
                 .st-emotion-cache-uf99v8 {display: none;}
-                .st-emotion-cache-1ibsh2c {padding: 0; padding-left: 1rem;}
+                .st-emotion-cache-1ibsh2c {position: absolute; top: -1rem; padding: 0; padding-left: 1rem;}
                 .stApp {
                     background-color: #800020;
                 }
                 p {
-                    margin: 0; /* Reduce margin to diminish gap */
-                    padding: 0; /* Reduce padding to diminish gap */
-                }
-                .stColumn {
                     margin: 0; /* Reduce margin to diminish gap */
                     padding: 0; /* Reduce padding to diminish gap */
                 }
