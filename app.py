@@ -98,7 +98,7 @@ for quiniela in quinielas:
     urls.append(url)
 
 st.set_page_config(layout="wide")
-css = """
+hide_streamlit_style = """
             <style>
                 /* Hide the Streamlit header and menu */
                 header {visibility: hidden;}
@@ -107,24 +107,24 @@ css = """
                 /* Hide your specific div class, replace class name with the one you identified */
                 .st-emotion-cache-uf99v8 {display: none;}
                 .st-emotion-cache-1ibsh2c {padding: 0; padding-left: 1rem;}
-                
                 .stApp {
                     background-color: #800020;
                 }
-                @media (max-width: 600px) {
-                    img {
-                        width: 100%;
-                        height: auto;
-                    }
-                    .st-column {
-                        flex: 1 1 100%;
-                    }
+                p {
+                    margin: 0; /* Reduce margin to diminish gap */
+                    padding: 0; /* Reduce padding to diminish gap */
                 }
             </style>
             """
-st.markdown(css, unsafe_allow_html=True)
+st.markdown("""
+<style>
+.stApp {
+    background-color: #800020;
+}
+</style>""", unsafe_allow_html=True)
 
-col1, col2, col3, col4 = st.columns([1, 1, 1, 2])
+st.markdown(hide_streamlit_style, unsafe_allow_html=True)
+col1, col2, col3, col4 = st.columns([0.2, 0.2, 0.2, 0.6])
 with col1:
     st.subheader(horario["name"])
 with col2:
