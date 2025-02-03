@@ -157,13 +157,19 @@ if st.session_state.get("cabezas"):
     columns = st.columns(len(formatted_table[0]))
     for row in formatted_table:
         for column, number in zip(columns, row):
+            if number == "Buenos Aires":
+                number = "Provincia"
+            elif number == "Nacional":
+                number = "Ciudad B.A."
             with column:
                 st.markdown(f'<p style="font-size: 2rem;">{number}</p>', unsafe_allow_html=True)
 else:
     for quiniela, url, column in zip(quinielas, urls, columns):
         with column:
             logo_path = logos[quinielas.index(quiniela)]
-            st.markdown(f'<img src="{logo_path}" style="width: 2rem; vertical-align: middle; margin-right: 0.5rem" /><b style="font-size: 1.25rem">{quiniela.upper()}</b>', unsafe_allow_html=True)
+            quiniela_display = quiniela.upper().replace("NACIONAL", "CIUDAD B.A.")
+            quiniela_display = quiniela_display.replace("BUENOS AIRES", "PROVINCIA")
+            st.markdown(f'<img src="{logo_path}" style="width: 2rem; vertical-align: middle; margin-right: 0.5rem" /><b style="font-size: 1.25rem">{quiniela_display}</b>', unsafe_allow_html=True)
             quiniela_data = get_quiniela_data(url, horario)
             for i, number in enumerate([num for row in quiniela_data for num in row], start=1):
                 # Show in yellow if first
