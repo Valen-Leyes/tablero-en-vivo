@@ -158,7 +158,7 @@ if st.session_state.get("cabezas"):
     for row in formatted_table:
         for column, number in zip(columns, row):
             with column:
-                st.markdown(f'<p style="font-size: 1.5rem;">{number}</p>', unsafe_allow_html=True)
+                st.markdown(f'<p style="font-size: 2rem;">{number}</p>', unsafe_allow_html=True)
 else:
     for quiniela, url, column in zip(quinielas, urls, columns):
         with column:
