@@ -162,7 +162,14 @@ if st.session_state.get("cabezas"):
             elif number == "Nacional":
                 number = "Ciudad B.A."
             with column:
-                st.markdown(f'<p style="font-size: 2rem;">{number}</p>', unsafe_allow_html=True)
+                # Show in yellow if first
+                try:
+                    if number == formatted_table[0][formatted_table[0].index(number)]:
+                        st.markdown(f'<p style="font-size: 2rem; color: yellow;">{number}</p>', unsafe_allow_html=True)
+                    else:
+                        st.markdown(f'<p style="font-size: 2rem;">{number}</p>', unsafe_allow_html=True)
+                except ValueError:
+                    st.markdown(f'<p style="font-size: 2rem;">{number}</p>', unsafe_allow_html=True)
 else:
     for quiniela, url, column in zip(quinielas, urls, columns):
         with column:
