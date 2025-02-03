@@ -131,7 +131,7 @@ with col2:
     today = datetime.now(argentina).strftime("%d/%m/%Y %H:%M")
     st.subheader(today)
 with col3:
-    st.subheader("AGENCIA OFICIAL 184")
+    st.markdown("<p style='font-size: 1.2rem; font-weight: bold'>AGENCIA OFICIAL 184</p>", unsafe_allow_html=True)
 with col4:
     if st.button("Cabezas"):
         if st.session_state.get("cabezas"):
