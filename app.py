@@ -124,14 +124,14 @@ st.markdown("""
 </style>""", unsafe_allow_html=True)
 
 st.markdown(hide_streamlit_style, unsafe_allow_html=True)
-col1, col2, col3, col4 = st.columns([0.2, 0.2, 0.2, 0.6])
+col1, col2, col3, col4 = st.columns([0.2, 0.2, 0.3, 0.5])
 with col1:
     st.subheader(horario["name"])
 with col2:
     today = datetime.now(argentina).strftime("%d/%m/%Y %H:%M")
     st.subheader(today)
 with col3:
-    st.markdown("<p style='font-size: 1.2rem; font-weight: bold'>AGENCIA OFICIAL 184</p>", unsafe_allow_html=True)
+    st.subheader("AGENCIA OFICIAL 184")
 with col4:
     if st.button("Cabezas"):
         if st.session_state.get("cabezas"):
