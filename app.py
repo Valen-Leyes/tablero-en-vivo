@@ -158,7 +158,7 @@ if st.session_state.get("cabezas"):
     for row in formatted_table:
         for column, number in zip(columns, row):
             with column:
-                st.markdown(f'<p style="font-size: 2rem;">{number}</p>', unsafe_allow_html=True)
+                st.markdown(f'<p style="font-size: 2rem; background-color: {"black" if number.isdigit() else "transparent"}">{number}</p>', unsafe_allow_html=True)
 else:
     for quiniela, url, column in zip(quinielas, urls, columns):
         with column:
@@ -168,7 +168,7 @@ else:
             for i, number in enumerate([num for row in quiniela_data for num in row], start=1):
                 # Show in yellow if first
                 if number == [num for row in quiniela_data for num in row][0]:
-                    st.markdown(f'<p style="font-size: 1.5rem; color: yellow"><span style="font-size: 1.2rem">{f"{i:02d}"}</span>. {number}</p>', unsafe_allow_html=True)
+                    st.markdown(f'<p style="font-size: 1.5rem; background-color: black; color: yellow"><span style="font-size: 1.2rem">{f"{i:02d}"}</span>. {number}</p>', unsafe_allow_html=True)
                 else:
                     st.markdown(f'<p style="font-size: 0.8rem">{f"{i:02d}"}<span style="font-size: 1.2rem">. {number}</span></p>', unsafe_allow_html=True)
 
