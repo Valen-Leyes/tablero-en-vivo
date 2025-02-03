@@ -114,6 +114,10 @@ hide_streamlit_style = """
                     margin: 0; /* Reduce margin to diminish gap */
                     padding: 0; /* Reduce padding to diminish gap */
                 }
+                .stColumn {
+                    margin: 0; /* Reduce margin to diminish gap */
+                    padding: 0; /* Reduce padding to diminish gap */
+                }
             </style>
             """
 st.markdown("""
