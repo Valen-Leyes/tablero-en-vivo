@@ -16,6 +16,7 @@ def get_chaco_data(url):
     response = requests.get(url)
     data = response.json()
     chaco_data = [data['data'].get(f'ubicacion{i}') for i in range(1, 21)]
+    chaco_data = ["----" if x is None else x for x in chaco_data]
     return chaco_data
 
 def get_rutamil_data(url):
@@ -52,15 +53,12 @@ def get_quinielas_data(url, soup, horario):
                 numbers = re.findall(r'\d{4}', tds[horario_index[i]].text.strip())
                 if len(numbers) > 20:
                     numbers.pop(0)
-                quiniela_data.extend(numbers)
+                quiniela_data.extend(["----" if x is None else x for x in numbers])
             quinielas_data.append(quiniela_data)
     
     # Append chaco
     chaco_data = get_chaco_data(url)
     quinielas_data.append(chaco_data)
-
-    # Replace None by empty string
-    quinielas_data = ["----" if x is None else x for x in quinielas_data]
     
     return quinielas_data
 
