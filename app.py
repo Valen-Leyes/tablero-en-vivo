@@ -50,6 +50,8 @@ def get_quinielas_data(soup, horario):
             for i, table in enumerate(tables):
                 tds = table.find_all('td')
                 numbers = re.findall(r'\d{4}', tds[horario_index[i]].text.strip())
+                if len(numbers) > 20:
+                    numbers.pop(0)
                 quiniela_data.extend(numbers)
             quinielas_data.append(quiniela_data)
     
