@@ -16,6 +16,10 @@ def get_chaco_data(url):
     response = requests.get(url)
     data = response.json()
     chaco_data = [data['data'].get(f'ubicacion{i}') for i in range(1, 21)]
+
+    # Replace None by empty string
+    chaco_data = ["----" if x is None else x for x in chaco_data]
+
     return chaco_data
 
 def get_rutamil_data(url):
