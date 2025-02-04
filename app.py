@@ -1,35 +1,65 @@
 import requests
 import pytz
-from datetime import datetime
+from datetime import datetime, timedelta
 import streamlit as st
 from bs4 import BeautifulSoup
 from streamlit_autorefresh import st_autorefresh
+
+import re
 
 def check_horario(horario, time):
     for h in horario:
         if h["time"] <= time < h["next_time"]:
             return h
 
-def get_quiniela_data(url, horario):
+def get_chaco_data(url):
+    response = requests.get(url)
+    data = response.json()
+    chaco_data = [data['data'].get(f'ubicacion{i}') for i in range(1, 21)]
+    return chaco_data
+
+def get_rutamil_data(url):
     response = requests.get(url)
     soup = BeautifulSoup(response.text, 'html.parser')
-    tables = soup.find_all('table', {'class': 'table table-bordered table-striped'})
-    last_table = next((table for table in tables if horario["name"] in str(table)), None)
-    if not last_table:
-        return []
-    trs = last_table.find_all('tr')
-    quiniela_data = []
-    for tr in trs:
-        tds = tr.find_all('td')
-        row_data = []
-        for td in tds:
-            span = td.find('span', {'class': 'nro'})
-            if span:
-                row_data.append(span.text.strip())
-        quiniela_data.append(row_data)
-    return quiniela_data
+    return soup
 
-def get_quinielas_data(url):
+def get_quinielas_data(soup, horario):
+    quinielas = ["Corrientes", "Nacional", "BuenosAires", "SantaFe", "Cordoba", "EntreRios"]
+    tables = []
+
+    # Match horario with table
+    horarios = {
+        "PREVIA": [0, 0],
+        "PRIMERA": [12, 31],
+        "MATUTINA": [24, 62],
+        "VESPERTINA": [36, 93],
+        "NOCTURNA": [48, 124]
+    }
+
+    # Get table for horario
+    quinielas_data = []
+
+    for quiniela in quinielas:
+        result_tag = soup.find('a', {'name': f'Resultados{quiniela}'})
+        if result_tag:
+            first_table = result_tag.find_next('table', {'style': 'border:#99CC99 4px ridge;border-bottom:0px'})
+            second_table = first_table.find_next('table', {'style': 'border:#99CC99 4px ridge;border-top:0px'})
+            tables = [first_table, second_table]
+            horario_index = horarios[horario["name"]]
+            quiniela_data = []
+            for i, table in enumerate(tables):
+                tds = table.find_all('td')
+                numbers = re.findall(r'\d{4}', tds[horario_index[i]].text.strip())
+                quiniela_data.extend(numbers)
+            quinielas_data.append(quiniela_data)
+    
+    # Append chaco
+    chaco_data = get_chaco_data("https://loteria.chaco.gov.ar/api")
+    quinielas_data.append(chaco_data)
+    
+    return quinielas_data
+
+def get_cabezas_data(url):
     response = requests.get(url)
     soup = BeautifulSoup(response.text, 'html.parser')
     table = soup.find('table')
@@ -45,7 +75,7 @@ def replace_accents(text):
     text = text.replace('ñ', 'n')
     return text
 
-def format_quinielas_table(table):
+def format_cabezas_table(table):
     quinielas = ["Nacional", "Buenos Aires", "Santa Fe", "Cordoba", "Entre Rios", "Corrientes", "Chaco"]
 
     for span in table.find_all('span', {'class': 'hidden-xs'}):
@@ -72,11 +102,27 @@ def format_quinielas_table(table):
 
     return table_matrix
 
-quinielas = ["corrientes", "nacional", "buenos aires", "santa fe", "cordoba", "entre rios", "chaco"]
+def display_cabezas_results(formatted_table):
+    columns = st.columns(len(formatted_table[0]))
+    for row in formatted_table:
+        for column, number in zip(columns, row):
+            if number == "Nacional":
+                number = "Ciudad B.A."
+            with column:
+                # Show in yellow if first
+                try:
+                    if number == formatted_table[0][formatted_table[0].index(number)]:
+                        st.markdown(f'<p style="font-size: 2rem; color: yellow;">{number}</p>', unsafe_allow_html=True)
+                    else:
+                        st.markdown(f'<p style="font-size: 2rem;">{number}</p>', unsafe_allow_html=True)
+                except ValueError:
+                    st.markdown(f'<p style="font-size: 2rem;">{number}</p>', unsafe_allow_html=True)
+
+quinielas = ["corrientes", "ciudad", "buenos aires", "santa fe", "cordoba", "entre rios", "chaco"]
 horarios = [
     {"name": "NOCTURNA", "time": "00:00", "next_time": "10:15"},
-    {"name": "LA PREVIA", "time": "10:15", "next_time": "12:00"},
-    {"name": "LA PRIMERA", "time": "12:00", "next_time": "15:00"},
+    {"name": "PREVIA", "time": "10:15", "next_time": "12:00"},
+    {"name": "PRIMERA", "time": "12:00", "next_time": "15:00"},
     {"name": "MATUTINA", "time": "15:00", "next_time": "18:00"},
     {"name": "VESPERTINA", "time": "18:00", "next_time": "21:00"},
     {"name": "NOCTURNA", "time": "21:00", "next_time": "23:59"}
@@ -85,17 +131,16 @@ horarios = [
 argentina = pytz.timezone('America/Argentina/Buenos_Aires')
 now = datetime.now(argentina)
 horario = check_horario(horarios, now.strftime("%H:%M"))
+yesterday = now - timedelta(days=1)
+if yesterday.weekday() == 6:  # 6 is Sunday
+    yesterday -= timedelta(days=1)
 
-urls = []
+date = now.strftime("%Y_%m_%d") if horario["time"] != "00:00" else yesterday.strftime("%Y_%m_%d")
 
-for quiniela in quinielas:
-    if quiniela.find(" ") >= 0:
-        quiniela = quiniela.replace(" ", "")
-    if horario["time"] == "00:00":
-        url = f"https://quinieleando.com.ar/quinielas/{quiniela}/resultados-de-ayer"
-    else:
-        url = f"https://quinieleando.com.ar/quinielas/{quiniela}/resultados-de-hoy"
-    urls.append(url)
+urls = [
+    f"https://m.ruta1000.com.ar/index2008.php?FechaAlMinuto={date}&Resultados=Montevideo",
+    "https://loteria.chaco.gov.ar/api"
+]
 
 st.set_page_config(layout="wide")
 hide_streamlit_style = """
@@ -116,13 +161,6 @@ hide_streamlit_style = """
                 }
             </style>
             """
-st.markdown("""
-<style>
-.stApp {
-    background-color: #800020;
-}
-</style>""", unsafe_allow_html=True)
-
 st.markdown(hide_streamlit_style, unsafe_allow_html=True)
 col1, col2, col3, col4 = st.columns([0.2, 0.2, 0.3, 0.5])
 with col1:
@@ -152,37 +190,23 @@ logos = [
 
 if st.session_state.get("cabezas"):
     url = "https://quinieleando.com.ar/quinielas"
-    quinielas_data = get_quinielas_data(url)
-    formatted_table = format_quinielas_table(quinielas_data)
-    columns = st.columns(len(formatted_table[0]))
-    for row in formatted_table:
-        for column, number in zip(columns, row):
-            if number == "Buenos Aires":
-                number = "Provincia"
-            elif number == "Nacional":
-                number = "Ciudad B.A."
-            with column:
-                # Show in yellow if first
-                try:
-                    if number == formatted_table[0][formatted_table[0].index(number)]:
-                        st.markdown(f'<p style="font-size: 2rem; color: yellow;">{number}</p>', unsafe_allow_html=True)
-                    else:
-                        st.markdown(f'<p style="font-size: 2rem;">{number}</p>', unsafe_allow_html=True)
-                except ValueError:
-                    st.markdown(f'<p style="font-size: 2rem;">{number}</p>', unsafe_allow_html=True)
+    quinielas_data = get_cabezas_data(url)
+    formatted_table = format_cabezas_table(quinielas_data)
+    display_cabezas_results(formatted_table)
 else:
-    for quiniela, url, column in zip(quinielas, urls, columns):
+    soup = get_rutamil_data(urls[0])
+    data = get_quinielas_data(soup, horario)
+    for quiniela, column in zip(quinielas, columns):
         with column:
             logo_path = logos[quinielas.index(quiniela)]
-            quiniela_display = quiniela.upper().replace("NACIONAL", "CIUDAD B.A.")
-            quiniela_display = quiniela_display.replace("BUENOS AIRES", "PROVINCIA")
+            quiniela_display = quiniela.upper()
             st.markdown(f'<img src="{logo_path}" style="width: 2rem; vertical-align: middle; margin-right: 0.5rem" /><b style="font-size: 1.25rem">{quiniela_display}</b>', unsafe_allow_html=True)
-            quiniela_data = get_quiniela_data(url, horario)
-            for i, number in enumerate([num for row in quiniela_data for num in row], start=1):
+
+            for i, row in enumerate(data[quinielas.index(quiniela)], start=1):
                 # Show in yellow if first
-                if number == [num for row in quiniela_data for num in row][0]:
-                    st.markdown(f'<p style="font-size: 1.5rem; background-color: black; color: yellow"><span style="font-size: 1.2rem">{f"{i:02d}"}</span>. {number}</p>', unsafe_allow_html=True)
+                if i == 1:
+                    st.markdown(f'<p style="font-size: 1.5rem; background-color: black; color: yellow"><span style="font-size: 1.2rem">{f"{i:02d}"}</span>. {row}</p>', unsafe_allow_html=True)
                 else:
-                    st.markdown(f'<p style="font-size: 0.8rem">{f"{i:02d}"}<span style="font-size: 1.2rem">. {number}</span></p>', unsafe_allow_html=True)
+                    st.markdown(f'<p style="font-size: 0.8rem">{f"{i:02d}"}<span style="font-size: 1.2rem">. {row}</span></p>', unsafe_allow_html=True)
 
 st_autorefresh(interval=1000*15, key="refresh")
