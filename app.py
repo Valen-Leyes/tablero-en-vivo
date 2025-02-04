@@ -23,7 +23,7 @@ def get_rutamil_data(url):
     soup = BeautifulSoup(response.text, 'html.parser')
     return soup
 
-def get_quinielas_data(soup, horario):
+def get_quinielas_data(url, soup, horario):
     quinielas = ["Corrientes", "Nacional", "BuenosAires", "SantaFe", "Cordoba", "EntreRios"]
     tables = []
 
@@ -56,7 +56,7 @@ def get_quinielas_data(soup, horario):
             quinielas_data.append(quiniela_data)
     
     # Append chaco
-    chaco_data = get_chaco_data("https://loteria.chaco.gov.ar/api")
+    chaco_data = get_chaco_data(url)
     quinielas_data.append(chaco_data)
     
     return quinielas_data
@@ -197,7 +197,7 @@ if st.session_state.get("cabezas"):
     display_cabezas_results(formatted_table)
 else:
     soup = get_rutamil_data(urls[0])
-    data = get_quinielas_data(soup, horario)
+    data = get_quinielas_data(urls[1], soup, horario)
     for quiniela, column in zip(quinielas, columns):
         with column:
             logo_path = logos[quinielas.index(quiniela)]
