@@ -125,17 +125,22 @@ def display_cabezas_results(formatted_table):
                     st.markdown(f'<p style="font-size: 2rem;">{number}</p>', unsafe_allow_html=True)
 
 quinielas = ["corrientes", "ciudad", "buenos aires", "santa fe", "cordoba", "entre rios", "chaco"]
-horarios = [
-    {"name": "NOCTURNA", "time": "00:00", "next_time": "10:15"},
-    {"name": "PREVIA", "time": "10:15", "next_time": "12:00"},
-    {"name": "PRIMERA", "time": "12:00", "next_time": "15:00"},
-    {"name": "MATUTINA", "time": "15:00", "next_time": "18:00"},
-    {"name": "VESPERTINA", "time": "18:00", "next_time": "21:00"},
-    {"name": "NOCTURNA", "time": "21:00", "next_time": "23:59"}
-]
 
 argentina = pytz.timezone('America/Argentina/Buenos_Aires')
 now = datetime.now(argentina)
+if now.weekday() == 6:  # 6 is Sunday
+    horarios = [
+        {"name": "NOCTURNA", "time": "00:00", "next_time": "23:59"}
+    ]
+else:
+    horarios = [
+        {"name": "NOCTURNA", "time": "00:00", "next_time": "10:15"},
+        {"name": "PREVIA", "time": "10:15", "next_time": "12:00"},
+        {"name": "PRIMERA", "time": "12:00", "next_time": "15:00"},
+        {"name": "MATUTINA", "time": "15:00", "next_time": "18:00"},
+        {"name": "VESPERTINA", "time": "18:00", "next_time": "21:00"},
+        {"name": "NOCTURNA", "time": "21:00", "next_time": "23:59"}
+    ]
 horario = check_horario(horarios, now.strftime("%H:%M"))
 yesterday = now - timedelta(days=1)
 if yesterday.weekday() == 6:  # 6 is Sunday
