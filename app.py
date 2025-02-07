@@ -124,7 +124,7 @@ def display_cabezas_results(formatted_table):
                 except ValueError:
                     st.markdown(f'<p style="font-size: 2rem;">{number}</p>', unsafe_allow_html=True)
 
-quinielas = ["corrientes", "ciudad", "buenos aires", "santa fe", "cordoba", "entre rios", "chaco"]
+quinielas = ["corrientes", "ciudad b.a.", "provincia", "santa fe", "cordoba", "entre rios", "chaco"]
 
 argentina = pytz.timezone('America/Argentina/Buenos_Aires')
 now = datetime.now(argentina)
