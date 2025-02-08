@@ -184,11 +184,8 @@ with col2:
 with col3:
     st.subheader("AGENCIA OFICIAL 184")
 with col4:
-    if st.button("Cabezas"):
-        if st.session_state.get("cabezas"):
-            st.session_state.cabezas = False
-        else:
-            st.session_state.cabezas = True
+    btn_label = "Los 20" if st.session_state.get("cabezas") else "Cabezas"
+    st.button(btn_label, on_click=lambda: st.session_state.update({"cabezas": not st.session_state.get("cabezas", False)}))
 columns = st.columns(len(quinielas))
 
 logos = [
