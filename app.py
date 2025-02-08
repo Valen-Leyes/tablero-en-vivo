@@ -114,6 +114,8 @@ def display_cabezas_results(formatted_table):
         for column, number in zip(columns, row):
             if number == "Nacional":
                 number = "Ciudad B.A."
+            elif number == "Buenos Aires":
+                number = "Provincia"
             with column:
                 # Show in yellow if first
                 try:
