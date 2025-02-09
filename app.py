@@ -65,6 +65,23 @@ def get_quinielas_data(url, soup, horario):
     
     return quinielas_data
 
+
+def display_quinielas(urls):
+    soup = get_rutamil_data(urls[0])
+    data = get_quinielas_data(urls[1], soup, horario)
+    for quiniela, column in zip(quinielas, columns):
+        with column:
+            logo_path = logos[quinielas.index(quiniela)]
+            quiniela_display = quiniela.upper()
+            st.markdown(f'<img src="{logo_path}" style="width: 2rem; vertical-align: middle; margin-right: 0.5rem" /><b style="font-size: 1.25rem">{quiniela_display}</b>', unsafe_allow_html=True)
+
+            for i, row in enumerate(data[quinielas.index(quiniela)], start=1):
+                # Show in yellow if first
+                if i == 1:
+                    st.markdown(f'<p style="font-size: 1.5rem; background-color: black; color: yellow"><span style="font-size: 1.2rem">{f"{i:02d}"}</span>. {row}</p>', unsafe_allow_html=True)
+                else:
+                    st.markdown(f'<p style="font-size: 0.8rem">{f"{i:02d}"}<span style="font-size: 1.2rem">. {row}</span></p>', unsafe_allow_html=True)
+
 def get_cabezas_data(url):
     response = requests.get(url)
     soup = BeautifulSoup(response.text, 'html.parser')
@@ -108,7 +125,10 @@ def format_cabezas_table(table):
 
     return table_matrix
 
-def display_cabezas_results(formatted_table):
+def display_cabezas_results():
+    url = "https://quinieleando.com.ar/quinielas"
+    quinielas_data = get_cabezas_data(url)
+    formatted_table = format_cabezas_table(quinielas_data)
     columns = st.columns(len(formatted_table[0]))
     for row in formatted_table:
         for column, number in zip(columns, row):
@@ -175,7 +195,7 @@ hide_streamlit_style = """
             </style>
             """
 st.markdown(hide_streamlit_style, unsafe_allow_html=True)
-col1, col2, col3, col4 = st.columns([0.2, 0.2, 0.3, 0.5])
+col1, col2, col3 = st.columns([0.2, 0.2, 0.8])
 with col1:
     st.subheader(horario["name"])
 with col2:
@@ -183,9 +203,7 @@ with col2:
     st.subheader(today)
 with col3:
     st.subheader("AGENCIA OFICIAL 184")
-with col4:
-    btn_label = "Los 20" if st.session_state.get("cabezas") else "Cabezas"
-    st.button(btn_label, on_click=lambda: st.session_state.update({"cabezas": not st.session_state.get("cabezas", False)}))
+
 columns = st.columns(len(quinielas))
 
 logos = [
@@ -198,25 +216,14 @@ logos = [
     "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSazavFAk4DUCYRMywk-Gd3a0AHMVOIH6cJUg&s"
 ]
 
-if st.session_state.get("cabezas"):
-    url = "https://quinieleando.com.ar/quinielas"
-    quinielas_data = get_cabezas_data(url)
-    formatted_table = format_cabezas_table(quinielas_data)
-    display_cabezas_results(formatted_table)
+if st.session_state.get("refresh", False):
+    if st.session_state.get("display_cabezas", False):
+        display_quinielas(urls)
+        st.session_state.display_cabezas = False
+    else:
+        display_cabezas_results()
+        st.session_state.display_cabezas = True
 else:
-    soup = get_rutamil_data(urls[0])
-    data = get_quinielas_data(urls[1], soup, horario)
-    for quiniela, column in zip(quinielas, columns):
-        with column:
-            logo_path = logos[quinielas.index(quiniela)]
-            quiniela_display = quiniela.upper()
-            st.markdown(f'<img src="{logo_path}" style="width: 2rem; vertical-align: middle; margin-right: 0.5rem" /><b style="font-size: 1.25rem">{quiniela_display}</b>', unsafe_allow_html=True)
-
-            for i, row in enumerate(data[quinielas.index(quiniela)], start=1):
-                # Show in yellow if first
-                if i == 1:
-                    st.markdown(f'<p style="font-size: 1.5rem; background-color: black; color: yellow"><span style="font-size: 1.2rem">{f"{i:02d}"}</span>. {row}</p>', unsafe_allow_html=True)
-                else:
-                    st.markdown(f'<p style="font-size: 0.8rem">{f"{i:02d}"}<span style="font-size: 1.2rem">. {row}</span></p>', unsafe_allow_html=True)
+    display_quinielas(urls)
 
 st_autorefresh(interval=1000*15, key="refresh")
